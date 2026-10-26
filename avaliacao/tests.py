@@ -85,6 +85,17 @@ class LancarNotaServiceTests(BaseAvaliacao):
             services.lancar_nota(outro, self.d['atribuicao'], self.matriculas[0], 1,
                                  D('10'))
 
+    def test_aluno_de_outra_turma_e_recusado(self):
+        """Pré-condição m.turma = a.turma (Capítulo VI)."""
+        from academico.models import Turma
+        outra = Turma.objects.create(ano_lectivo=self.d['ano'], classe=self.d['classe'],
+                                     nome='B', turno='Tarde')
+        m = self.matriculas[0]
+        m.turma = outra
+        m.save()
+        with self.assertRaises(ValidationError):
+            services.lancar_nota(self.d['u_prof'], self.d['atribuicao'], m, 1, D('10'))
+
 
 class FecharPautaServiceTests(BaseAvaliacao):
     """TI04 — RF18 e RN07: fecho da pauta."""
