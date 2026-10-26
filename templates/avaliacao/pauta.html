@@ -1,0 +1,18 @@
+{% extends 'base.html' %}
+{% block titulo %}Pauta{% endblock %}
+{% block conteudo %}
+<div class="d-flex justify-content-between align-items-start mb-3">
+  <div><h1 class="h3 mb-1">Pauta — {{ turma }}</h1>
+    <p class="text-muted mb-0">{{ pauta.trimestre }}.º trimestre ·
+      {% if pauta.esta_fechada %}<span class="badge bg-success">Fechada</span> por {{ pauta.fechada_por.get_full_name|default:pauta.fechada_por }} em {{ pauta.fechada_em|date:"d/m/Y H:i" }}
+      {% else %}<span class="badge bg-warning text-dark">Aberta</span> · {{ em_falta }} nota(s) por lançar{% endif %}</p></div>
+  {% if pode_fechar and not pauta.esta_fechada %}
+  <form method="post" action="{% url 'fechar_pauta' turma.pk pauta.trimestre %}">{% csrf_token %}
+    <button class="btn btn-danger">Fechar e validar pauta</button></form>{% endif %}
+</div>
+<div class="card"><table class="table table-bordered mb-0 text-center">
+  <thead class="table-light"><tr><th class="text-start">Aluno</th>{% for a in atribuicoes %}<th>{{ a.disciplina }}</th>{% endfor %}</tr></thead>
+  <tbody>{% for m, notas in linhas %}<tr><td class="text-start">{{ m.aluno.nome }}</td>
+    {% for n in notas %}<td class="{% if n is None %}table-warning{% elif n < 10 %}text-danger fw-bold{% endif %}">{{ n|default_if_none:"—" }}</td>{% endfor %}</tr>
+  {% endfor %}</tbody></table></div>
+{% endblock %}

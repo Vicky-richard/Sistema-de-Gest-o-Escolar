@@ -13,6 +13,26 @@
     <h2 class="h5">Alunos e matrículas</h2><p class="text-muted">Registar alunos e matrículas por ano lectivo.</p>
     <a class="btn btn-outline-primary" href="{% url 'lista_alunos' %}">Abrir</a></div></div></div>
   {% endif %}
-  {% block cartoes %}{% endblock %}
+  {% if atribuicoes %}
+  <div class="col-md-8"><div class="card h-100"><div class="card-body">
+    <h2 class="h5">As minhas turmas</h2>
+    <ul class="list-group list-group-flush">{% for a in atribuicoes %}
+      <li class="list-group-item d-flex justify-content-between align-items-center">{{ a.disciplina }} — {{ a.turma }}
+        <a class="btn btn-sm btn-primary" href="{% url 'lancar_notas' a.pk 1 %}">Lançar notas</a></li>{% endfor %}</ul>
+  </div></div></div>
+  {% endif %}
+  {% if turmas %}
+  <div class="col-md-8"><div class="card h-100"><div class="card-body">
+    <h2 class="h5">Pautas</h2>
+    <ul class="list-group list-group-flush">{% for t in turmas %}
+      <li class="list-group-item d-flex justify-content-between align-items-center">{{ t }}
+        <span>{% for n in "123" %}<a class="btn btn-sm btn-outline-dark ms-1" href="{% url 'ver_pauta' t.pk n %}">{{ n }}.º T</a>{% endfor %}</span></li>{% endfor %}</ul>
+  </div></div></div>
+  {% endif %}
+  {% if user.perfil == 'ALUNO' or user.perfil == 'ENCARREGADO' %}
+  <div class="col-md-4"><div class="card h-100"><div class="card-body">
+    <h2 class="h5">Notas</h2><p class="text-muted">Consultar notas, médias e resultados.</p>
+    <a class="btn btn-outline-primary" href="{% url 'consultar_notas' %}">Abrir</a></div></div></div>
+  {% endif %}
 </div>
 {% endblock %}

@@ -1,0 +1,24 @@
+{% extends 'base.html' %}
+{% block titulo %}Lançar notas{% endblock %}
+{% block conteudo %}
+<h1 class="h3">Lançar notas</h1>
+<p class="text-muted">{{ atribuicao.disciplina }} · {{ atribuicao.turma }} · {{ trimestre }}.º trimestre
+  {% if pauta.esta_fechada %}<span class="badge bg-secondary ms-2">Pauta fechada</span>{% endif %}</p>
+<nav class="mb-3">{% for t in "123" %}
+  <a class="btn btn-sm {% if t|add:0 == trimestre %}btn-dark{% else %}btn-outline-dark{% endif %}"
+     href="{% url 'lancar_notas' atribuicao.pk t %}">{{ t }}.º trimestre</a>{% endfor %}</nav>
+<form method="post" class="card">{% csrf_token %}
+<table class="table mb-0 align-middle">
+  <thead class="table-light"><tr><th>#</th><th>Aluno</th><th style="width:180px">Nota (0–20)</th></tr></thead>
+  <tbody>
+  {% for m, valor, erro in linhas %}
+  <tr><td>{{ forloop.counter }}</td><td>{{ m.aluno.nome }}</td>
+    <td><input name="nota_{{ m.pk }}" value="{{ valor }}" class="form-control {% if erro %}is-invalid{% endif %}"
+         inputmode="decimal" {% if pauta.esta_fechada %}disabled{% endif %}>
+      {% if erro %}<div class="invalid-feedback">{{ erro }}</div>{% endif %}</td></tr>
+  {% empty %}<tr><td colspan="3" class="text-muted">A turma não tem alunos matriculados.</td></tr>
+  {% endfor %}
+  </tbody></table>
+{% if not pauta.esta_fechada %}<div class="card-footer text-end"><button class="btn btn-primary">Guardar notas</button></div>{% endif %}
+</form>
+{% endblock %}
