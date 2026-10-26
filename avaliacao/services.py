@@ -54,6 +54,8 @@ def lancar_nota(utilizador, atribuicao, matricula, trimestre, valor):
     """RF14: lança ou corrige uma nota, respeitando RN03, RN07 e RN08."""
     if atribuicao.professor.utilizador_id != utilizador.pk:      # RN08
         raise PermissionDenied('Professor não atribuído a esta turma/disciplina.')
+    if matricula.turma_id != atribuicao.turma_id:
+        raise ValidationError('O aluno não pertence à turma desta atribuição.')
     if obter_pauta(atribuicao.turma, trimestre).esta_fechada():  # RN07
         raise ValidationError('A pauta está fechada; só a Direcção pode alterar.')
     validar_valor_nota(valor)
