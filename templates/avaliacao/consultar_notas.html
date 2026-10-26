@@ -1,0 +1,16 @@
+{% extends 'base.html' %}
+{% block titulo %}Notas{% endblock %}
+{% block conteudo %}
+<h1 class="h3 mb-3">Consulta de notas</h1>
+{% for aluno, matricula, linhas in boletins %}
+<div class="card mb-4"><div class="card-header"><strong>{{ aluno.nome }}</strong>
+  {% if matricula %}· {{ matricula.turma }}{% endif %}</div>
+<table class="table mb-0 text-center">
+  <thead class="table-light"><tr><th class="text-start">Disciplina</th><th>1.º T</th><th>2.º T</th><th>3.º T</th><th>Média</th><th>Resultado</th></tr></thead>
+  <tbody>{% for disc, trims, media, res in linhas %}<tr><td class="text-start">{{ disc }}</td>
+    {% for t in trims %}<td>{{ t|default_if_none:"—" }}</td>{% endfor %}
+    <td><strong>{{ media|default_if_none:"—" }}</strong></td><td>{{ res|default_if_none:"—" }}</td></tr>
+  {% empty %}<tr><td colspan="6" class="text-muted">Sem notas.</td></tr>{% endfor %}</tbody></table></div>
+{% empty %}<p class="text-muted">Sem alunos associados a esta conta.</p>
+{% endfor %}
+{% endblock %}

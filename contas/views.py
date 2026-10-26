@@ -31,4 +31,11 @@ def entrar(request):
 
 @login_required
 def painel(request):
-    return render(request, 'contas/painel.html')
+    from academico.models import Atribuicao, Turma
+    contexto = {}
+    if request.user.perfil == 'PROFESSOR':
+        contexto['atribuicoes'] = Atribuicao.objects.filter(
+            professor__utilizador=request.user).select_related('turma', 'disciplina')
+    if request.user.perfil in ('DIRECCAO', 'SECRETARIA'):
+        contexto['turmas'] = Turma.objects.filter(ano_lectivo__activo=True)
+    return render(request, 'contas/painel.html', contexto)
