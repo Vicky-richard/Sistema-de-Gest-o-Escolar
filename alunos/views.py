@@ -1,32 +1,24 @@
 from django.contrib import messages
-from django.contrib.auth.decorators import login_required
-from django.core.exceptions import PermissionDenied
 from django.db import IntegrityError, transaction
 from django.shortcuts import redirect, render
 
 from contas.models import Perfil
+from contas.permissoes import perfil_requerido
 
 from .forms import AlunoForm, MatriculaForm
 from .models import Aluno
 
 
-def _exigir_secretaria(user):
-    if not user.tem_perfil(Perfil.SECRETARIA, Perfil.ADMINISTRADOR):
-        raise PermissionDenied
-
-
-@login_required
+@perfil_requerido(Perfil.SECRETARIA, Perfil.ADMINISTRADOR)
 def lista_alunos(request):
-    _exigir_secretaria(request.user)
     alunos = Aluno.objects.filter(activo=True).prefetch_related(
         'matriculas__turma')
     return render(request, 'alunos/lista.html', {'alunos': alunos})
 
 
-@login_required
+@perfil_requerido(Perfil.SECRETARIA, Perfil.ADMINISTRADOR)
 def registar_aluno(request):
     """RF05 + RF06: regista o aluno e a matrícula numa só operação."""
-    _exigir_secretaria(request.user)
     form_a = AlunoForm(request.POST or None, prefix='a')
     form_m = MatriculaForm(request.POST or None, prefix='m')
     if request.method == 'POST' and form_a.is_valid() and form_m.is_valid():

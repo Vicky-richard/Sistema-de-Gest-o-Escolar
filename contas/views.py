@@ -3,8 +3,10 @@ from django.contrib.auth import authenticate, login
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import redirect, render
 
+from academico.models import Atribuicao, Turma
+
 from .forms import LoginForm
-from .models import Utilizador
+from .models import Perfil, Utilizador
 
 
 def entrar(request):
@@ -31,11 +33,10 @@ def entrar(request):
 
 @login_required
 def painel(request):
-    from academico.models import Atribuicao, Turma
     contexto = {}
-    if request.user.perfil == 'PROFESSOR':
+    if request.user.perfil == Perfil.PROFESSOR:
         contexto['atribuicoes'] = Atribuicao.objects.filter(
             professor__utilizador=request.user).select_related('turma', 'disciplina')
-    if request.user.perfil in ('DIRECCAO', 'SECRETARIA'):
+    if request.user.perfil in (Perfil.DIRECCAO, Perfil.SECRETARIA):
         contexto['turmas'] = Turma.objects.filter(ano_lectivo__activo=True)
     return render(request, 'contas/painel.html', contexto)
