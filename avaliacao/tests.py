@@ -76,7 +76,7 @@ class LancarNotaServiceTests(BaseAvaliacao):
         services.lancar_nota(self.d['u_prof'], self.d['atribuicao'], m, 1, D('9'))
         services.lancar_nota(self.d['u_prof'], self.d['atribuicao'], m, 1, D('11'))
         log = LogAuditoria.objects.get(accao='ALTERAR_NOTA')
-        self.assertEqual((log.valor_anterior, log.valor_novo), ('9.0', '11'))
+        self.assertEqual((log.valor_anterior, log.valor_novo), ('9.0', '11.0'))
         self.assertEqual(log.utilizador, self.d['u_prof'])
 
     def test_professor_nao_atribuido_e_recusado(self):

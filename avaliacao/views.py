@@ -1,5 +1,4 @@
 from django.contrib import messages
-from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied, ValidationError
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
@@ -7,12 +6,28 @@ from django.views.decorators.http import require_POST
 from academico.models import Atribuicao, Turma
 from alunos.models import Aluno
 from contas.models import Perfil
+from contas.permissoes import perfil_requerido
 
 from . import services
 from .models import Nota
 
 
-@login_required
+def _validar_submissao(post, matriculas):
+    """Lê as notas submetidas; devolve (válidas, valores digitados, erros)."""
+    validas, valores, erros = {}, {}, {}
+    for m in matriculas:
+        texto = post.get(f'nota_{m.pk}', '').strip()
+        if not texto:
+            continue
+        valores[m.pk] = texto
+        try:
+            validas[m] = services.converter_nota(texto)
+        except ValidationError as e:
+            erros[m.pk] = e.messages[0]
+    return validas, valores, erros
+
+
+@perfil_requerido(Perfil.PROFESSOR)
 def lancar_notas(request, atribuicao_id, trimestre):
     """RF14: o professor lança as notas de uma turma/disciplina/trimestre."""
     atribuicao = get_object_or_404(Atribuicao.objects.select_related(
@@ -22,20 +37,12 @@ def lancar_notas(request, atribuicao_id, trimestre):
     pauta = services.obter_pauta(atribuicao.turma, trimestre)
     matriculas = atribuicao.turma.matriculas.select_related('aluno').order_by(
         'aluno__nome')
-    existentes = {n.matricula_id: n.valor for n in Nota.objects.filter(
+    valores = {n.matricula_id: n.valor for n in Nota.objects.filter(
         atribuicao=atribuicao, trimestre=trimestre)}
-    erros, valores = {}, dict(existentes)
+    erros = {}
     if request.method == 'POST' and not pauta.esta_fechada():
-        validas = {}
-        for m in matriculas:
-            texto = request.POST.get(f'nota_{m.pk}', '').strip()
-            if not texto:
-                continue
-            valores[m.pk] = texto
-            try:
-                validas[m] = services.converter_nota(texto)
-            except ValidationError as e:
-                erros[m.pk] = e.messages[0]
+        validas, digitados, erros = _validar_submissao(request.POST, matriculas)
+        valores.update(digitados)
         if not erros:
             for m, valor in validas.items():
                 services.lancar_nota(request.user, atribuicao, m, trimestre, valor)
@@ -48,15 +55,9 @@ def lancar_notas(request, atribuicao_id, trimestre):
         'linhas': linhas})
 
 
-def _exigir(user, *perfis):
-    if not user.tem_perfil(*perfis):
-        raise PermissionDenied
-
-
-@login_required
+@perfil_requerido(Perfil.DIRECCAO, Perfil.SECRETARIA, Perfil.PROFESSOR)
 def ver_pauta(request, turma_id, trimestre):
     """RF16: pauta da turma no trimestre."""
-    _exigir(request.user, Perfil.DIRECCAO, Perfil.SECRETARIA, Perfil.PROFESSOR)
     turma = get_object_or_404(Turma, pk=turma_id)
     pauta = services.obter_pauta(turma, trimestre)
     atribuicoes = list(turma.atribuicao_set.select_related('disciplina')
@@ -71,7 +72,7 @@ def ver_pauta(request, turma_id, trimestre):
         'pode_fechar': request.user.tem_perfil(Perfil.DIRECCAO)})
 
 
-@login_required
+@perfil_requerido(Perfil.DIRECCAO)
 @require_POST
 def fechar_pauta(request, turma_id, trimestre):
     """RF18: fechar e validar a pauta."""
@@ -99,15 +100,13 @@ def _boletim(aluno):
     return matricula, linhas
 
 
-@login_required
+@perfil_requerido(Perfil.ALUNO, Perfil.ENCARREGADO)
 def consultar_notas(request):
     """RF17 e RN09: o aluno vê as suas notas; o encarregado as dos educandos."""
     user = request.user
     if user.perfil == Perfil.ALUNO:
         alunos = Aluno.objects.filter(utilizador=user)
-    elif user.perfil == Perfil.ENCARREGADO:
-        alunos = Aluno.objects.filter(encarregados__utilizador=user)
     else:
-        raise PermissionDenied
+        alunos = Aluno.objects.filter(encarregados__utilizador=user)
     boletins = [(a, *_boletim(a)) for a in alunos]
     return render(request, 'avaliacao/consultar_notas.html', {'boletins': boletins})
