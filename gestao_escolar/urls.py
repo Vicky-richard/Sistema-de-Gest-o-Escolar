@@ -5,5 +5,6 @@ admin.site.site_header = 'Colégio Shalom — Administração'
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path('alunos/', include('alunos.urls')),
     path('', include('contas.urls')),
 ]

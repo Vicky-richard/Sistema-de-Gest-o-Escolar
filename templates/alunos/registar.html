@@ -1,0 +1,24 @@
+{% extends 'base.html' %}
+{% block titulo %}Registar aluno{% endblock %}
+{% block conteudo %}
+<h1 class="h3 mb-3">Registar aluno e matrícula</h1>
+<form method="post" class="card"><div class="card-body">{% csrf_token %}
+  <h2 class="h6 text-uppercase text-muted">Dados pessoais (RF05)</h2>
+  <div class="row g-3 mb-4">
+  {% for c in form_a %}
+    <div class="col-md-6"><label class="form-label">{{ c.label }}</label>
+      {{ c }}{% for e in c.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}</div>
+  {% endfor %}
+  </div>
+  <h2 class="h6 text-uppercase text-muted">Matrícula (RF06)</h2>
+  <div class="row g-3 mb-4">
+  {% for c in form_m %}
+    <div class="col-md-4"><label class="form-label">{{ c.label }}</label>
+      {{ c }}{% for e in c.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}</div>
+  {% endfor %}
+  </div>
+  <button class="btn btn-primary">Guardar</button>
+  <a class="btn btn-link" href="{% url 'lista_alunos' %}">Cancelar</a>
+</div></form>
+<style>input,select{display:block;width:100%;padding:.375rem .75rem;border:1px solid #ced4da;border-radius:.375rem}</style>
+{% endblock %}

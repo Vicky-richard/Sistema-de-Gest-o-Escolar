@@ -1,0 +1,20 @@
+{% extends 'base.html' %}
+{% block titulo %}Alunos{% endblock %}
+{% block conteudo %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h1 class="h3 mb-0">Alunos</h1>
+  <a class="btn btn-primary" href="{% url 'registar_aluno' %}">+ Registar aluno</a>
+</div>
+<div class="card"><table class="table table-hover mb-0">
+  <thead class="table-light"><tr><th>Nome</th><th>Data de nascimento</th><th>Turma</th><th>Matrícula</th></tr></thead>
+  <tbody>
+  {% for a in alunos %}
+    {% with m=a.matriculas.last %}
+    <tr><td>{{ a.nome }}</td><td>{{ a.data_nascimento|date:"d/m/Y" }}</td>
+      <td>{{ m.turma.classe }} {{ m.turma.nome }}</td>
+      <td><span class="badge {% if m.estado == 'Confirmada' %}bg-success{% else %}bg-warning text-dark{% endif %}">{{ m.estado }}</span></td></tr>
+    {% endwith %}
+  {% empty %}<tr><td colspan="4" class="text-muted">Sem alunos registados.</td></tr>
+  {% endfor %}
+  </tbody></table></div>
+{% endblock %}
