@@ -8,6 +8,11 @@
     <h2 class="h5">Administração</h2><p class="text-muted">Utilizadores, anos lectivos, turmas e disciplinas.</p>
     <a class="btn btn-outline-primary" href="/admin/">Abrir</a></div></div></div>
   {% endif %}
+  {% if user.is_superuser or user.perfil == 'SECRETARIA' or user.perfil == 'ADMINISTRADOR' %}
+  <div class="col-md-4"><div class="card h-100"><div class="card-body">
+    <h2 class="h5">Alunos e matrículas</h2><p class="text-muted">Registar alunos e matrículas por ano lectivo.</p>
+    <a class="btn btn-outline-primary" href="{% url 'lista_alunos' %}">Abrir</a></div></div></div>
+  {% endif %}
   {% block cartoes %}{% endblock %}
 </div>
 {% endblock %}
